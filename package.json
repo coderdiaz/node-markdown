@@ -1,0 +1,9 @@
+{
+  "name": "node-markdown",
+  "version": "0.0.1",
+  "dependencies": {
+    "glob": "^7.1.2",
+    "link-check": "^4.4.4",
+    "markdown-link-extractor": "^1.2.0"
+  }
+}
