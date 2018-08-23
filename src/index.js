@@ -34,23 +34,38 @@ const exploreLinks = (file, linksArray, validate = false) => {
   })
 }
 
-const markdownLinks = (dir, validate = false) => {
+const markdownLinks = (nodePath, validate = false) => {
+  const dirTemp = fs.realpathSync(nodePath)
+  const stats = fs.statSync(dirTemp);
   return new Promise((resolve, reject) => {
-    const files = glob.sync(`${dir}/**/*.md`)
-    const markdownInfo = Promise.all(files.map(async file => {
-      const pathFile = path.join(__dirname, `../${file}`) // Reading file
-      const links = extractLinks(pathFile); // Getting links
-      const linksInfo = await exploreLinks(pathFile, links, validate)
-      return { 
-        file, 
-        links: linksInfo,
-        totalOfLinks: linksInfo.length
-      }; // Getting info links
-    }));
-    resolve(markdownInfo);
+    if (stats.isDirectory()) {
+      const files = glob.sync(`${nodePath}/**/*.md`)
+      const markdownInfo = Promise.all(files.map(async file => {
+        const pathFile = path.join(__dirname, `../${file}`) // Reading file
+        const links = extractLinks(pathFile); // Getting links
+        const linksInfo = await exploreLinks(pathFile, links, validate)
+        return { 
+          file, 
+          links: linksInfo,
+          totalOfLinks: linksInfo.length
+        }; // Getting info links
+      }));
+      resolve(markdownInfo);
+    }
+
+    const pathFile = path.join(__dirname, `../${nodePath}`) // Reading file
+    const links = extractLinks(pathFile); // Getting links
+    exploreLinks(pathFile, links, validate).then(response => {
+      resolve({ 
+        file: pathFile, 
+        links: response,
+        totalOfLinks: response.length
+      })
+    })
+    
   })
 }
 
 markdownLinks('posts', true).then(response => {
-  console.table(response)
+  console.log(response)
 });
